@@ -24,8 +24,8 @@ include_recipe "memcached"
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
 
-gitorious_url = gitorious["gitorious_url"]
-gitorious_path = "/srv/rails/#{gitorious_url}"
+url = gitorious["url"]
+path = "/srv/rails/#{url}"
 
 package "imagemagick-dev" do
   package_name value_for_platform(
@@ -50,7 +50,7 @@ end
 
 gem_package "bundler"
 
-passenger_nginx_vhost gitorious_url
+passenger_nginx_vhost url
 
 postgresql_user "gitorious"do
   password "gitorious"
@@ -61,9 +61,9 @@ postgresql_db "gitorious_production" do
 end
 
 directories = [
-                "#{gitorious_path}/shared/config","#{gitorious_path}/shared/log",
-                "#{gitorious_path}/shared/system","#{gitorious_path}/shared/pids",
-                "#{gitorious_path}/shared/config/environments"
+                "#{path}/shared/config","#{path}/shared/log",
+                "#{path}/shared/system","#{path}/shared/pids",
+                "#{path}/shared/config/environments"
               ]
 directories.each do |dir|
   directory dir do
@@ -74,14 +74,14 @@ directories.each do |dir|
   end
 end
 
-cookbook_file "#{gitorious_path}/shared/config/environments/production.rb" do
+cookbook_file "#{path}/shared/config/environments/production.rb" do
   source "production.rb"
   owner "nginx"
   group "nginx"
   mode "0400"
 end
 
-template "#{gitorious_path}/shared/config/database.yml" do
+template "#{path}/shared/config/database.yml" do
   source "database.yml.erb"
   owner "nginx"
   group "nginx"
@@ -95,7 +95,7 @@ template "#{gitorious_path}/shared/config/database.yml" do
   })
 end
 
-deploy_revision "#{gitorious_path}" do
+deploy_revision "#{path}" do
   repo "git://gitorious.org/gitorious/mainline.git"
   revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
   user "nginx"
