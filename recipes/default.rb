@@ -48,6 +48,8 @@ package "libxslt-dev" do
   )
 end
 
+package "apg"
+
 gem_package "bundler"
 
 passenger_nginx_vhost url
@@ -95,6 +97,13 @@ template "#{path}/shared/config/database.yml" do
   })
 end
 
+template "#{path}/shared/config/gitorious.yml" do
+  source "gitorious.yml.erb"
+  owner "nginx"
+  group "nginx"
+  mode "0400"
+end
+
 deploy_revision "#{path}" do
   repo "git://gitorious.org/gitorious/mainline.git"
   revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
@@ -133,9 +142,10 @@ deploy_revision "#{path}" do
   migrate true
   migration_command "bundle exec rake db:migrate"
   symlink_before_migrate ({
-                          "config/database.yml" => "config/database.yml"
+                          "config/database.yml" => "config/database.yml",
+                          "config/gitorious.yml" => "config/gitorious.yml"
                          })
   environment "RAILS_ENV" => "production"
-  action :deploy # or :rollback
+  action :force_deploy # or :rollback
   restart_command "touch tmp/restart.txt"
 end
