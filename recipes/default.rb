@@ -74,12 +74,12 @@ directories.each do |dir|
   end
 end
 
-cookbook_file "#{path}/shared/config/environments/production.rb" do
-  source "production.rb"
-  owner "nginx"
-  group "nginx"
-  mode "0400"
-end
+#cookbook_file "#{path}/shared/config/environments/production.rb" do
+#  source "production.rb"
+#  owner "nginx"
+#  group "nginx"
+#  mode "0400"
+#end
 
 template "#{path}/shared/config/database.yml" do
   source "database.yml.erb"
@@ -113,6 +113,12 @@ deploy_revision "#{path}" do
       group "nginx"
       mode "0400"
     end
+    cookbook_file "#{release_path}/Rakefile" do
+      source "Rakefile"
+      owner "nginx"
+      group "nginx"
+      mode "0400"
+    end
     execute "bundle install --deployment" do
       user "nginx"
       group "nginx"
@@ -127,8 +133,7 @@ deploy_revision "#{path}" do
   migrate true
   migration_command "bundle exec rake db:migrate"
   symlink_before_migrate ({
-                          "config/database.yml" => "config/database.yml",
-                          "config/environments/production.rb" => "config/environments/production.rb"
+                          "config/database.yml" => "config/database.yml"
                          })
   environment "RAILS_ENV" => "production"
   action :deploy # or :rollback
