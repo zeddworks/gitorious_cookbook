@@ -87,7 +87,7 @@ template "#{path}/shared/config/database.yml" do
   source "database.yml.erb"
   owner "nginx"
   group "nginx"
-  mode "0400"
+  mode "0755"
   variables({
     :db_adapter => gitorious["db_adapter"],
     :db_name => gitorious["db_name"],
@@ -101,7 +101,7 @@ template "#{path}/shared/config/gitorious.yml" do
   source "gitorious.yml.erb"
   owner "nginx"
   group "nginx"
-  mode "0400"
+  mode "0755"
 end
 
 deploy_revision "#{path}" do
@@ -114,19 +114,19 @@ deploy_revision "#{path}" do
       source "Gemfile"
       owner "nginx"
       group "nginx"
-      mode "0400"
+      mode "0755"
     end
     cookbook_file "#{release_path}/Gemfile.lock" do
       source "Gemfile.lock"
       owner "nginx"
       group "nginx"
-      mode "0400"
+      mode "0755"
     end
     cookbook_file "#{release_path}/Rakefile" do
       source "Rakefile"
       owner "nginx"
       group "nginx"
-      mode "0400"
+      mode "0755"
     end
     execute "bundle install --deployment" do
       user "nginx"
@@ -134,6 +134,11 @@ deploy_revision "#{path}" do
       cwd release_path
     end
     execute "bundle package" do
+      user "nginx"
+      group "nginx"
+      cwd release_path
+    end
+    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
       user "nginx"
       group "nginx"
       cwd release_path
