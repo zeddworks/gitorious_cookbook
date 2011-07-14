@@ -20,6 +20,7 @@
 include_recipe "passenger_nginx"
 include_recipe "postgresql"
 include_recipe "memcached"
+include_recipe "activemq"
 
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
@@ -49,6 +50,13 @@ package "libxslt-dev" do
 end
 
 package "apg"
+
+package "ultrasphinx" do
+  package_name value_for_platform(
+    ["ubuntu", "debian"] => { "default" => "sphinxsearch" },
+    ["redhat"] => { "default" => "sphinx" }
+  )
+end
 
 gem_package "bundler"
 
