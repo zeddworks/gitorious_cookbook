@@ -163,6 +163,14 @@ deploy_revision "#{path}" do
                          })
   migrate true
   migration_command "bundle exec rake db:migrate"
+  before_symlink do
+    execute "bundle exec rake ultrasphinx:bootstrap" do
+      user "nginx"
+      group "nginx"
+      cwd release_path
+      environment ({'RAILS_ENV' => 'production'})
+    end
+  end
   action :force_deploy # or :rollback
   restart_command "touch tmp/restart.txt"
 end
