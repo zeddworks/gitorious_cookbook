@@ -117,9 +117,10 @@ template "#{path}/shared/config/gitorious.yml" do
 end
 
 deploy_revision "#{path}" do
+  user "nginx"
+  environment "RAILS_ENV" => "production"
   repo "git://gitorious.org/gitorious/mainline.git"
   revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
-  user "nginx"
   enable_submodules true
   before_migrate do
     cookbook_file "#{release_path}/Gemfile" do
@@ -156,13 +157,12 @@ deploy_revision "#{path}" do
 #      cwd release_path
 #    end
   end
-  migrate true
-  migration_command "bundle exec rake db:migrate"
   symlink_before_migrate ({
                           "config/database.yml" => "config/database.yml",
                           "config/gitorious.yml" => "config/gitorious.yml"
                          })
-  environment "RAILS_ENV" => "production"
+  migrate true
+  migration_command "bundle exec rake db:migrate"
   action :force_deploy # or :rollback
   restart_command "touch tmp/restart.txt"
 end
