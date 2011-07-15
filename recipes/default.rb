@@ -18,7 +18,7 @@
 #
 
 include_recipe "passenger_nginx"
-include_recipe "postgresql"
+include_recipe "mysql"
 include_recipe "memcached"
 include_recipe "activemq"
 
@@ -62,12 +62,22 @@ gem_package "bundler"
 
 passenger_nginx_vhost url
 
-postgresql_user "gitorious"do
-  password "gitorious"
+#postgresql_user "gitorious" do
+#  password "gitorious"
+#end
+
+mysql_user gitorious["db_user"] do
+  host gitorious["db_host"]
+  password gitorious["db_password"]
 end
 
-postgresql_db "gitorious_production" do
-  owner "gitorious"
+#postgresql_db "gitorious_production" do
+#  owner "gitorious"
+#end
+
+mysql_db gitorious["db_name"] do
+  owner gitorious["db_user"]
+  host gitorious["db_host"]
 end
 
 directories = [
@@ -146,11 +156,11 @@ deploy_revision "#{path}" do
       group "nginx"
       cwd release_path
     end
-    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
-      user "nginx"
-      group "nginx"
-      cwd release_path
-    end
+#    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
+#      user "nginx"
+#      group "nginx"
+#      cwd release_path
+#    end
   end
   migrate true
   migration_command "bundle exec rake db:migrate"
