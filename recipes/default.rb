@@ -57,6 +57,8 @@ package "aspell-dev" do
   )
 end
 
+package "apg"
+
 gem_package "bundler"
 
 passenger_nginx_vhost url
