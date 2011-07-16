@@ -121,6 +121,9 @@ template "#{path}/shared/config/gitorious.yml" do
   owner "nginx"
   group "nginx"
   mode "0755"
+  variables({
+    :url => gitorious["url"]
+  })
 end
 
 deploy_revision "#{path}" do
