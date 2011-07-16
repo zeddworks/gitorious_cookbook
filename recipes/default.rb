@@ -50,7 +50,12 @@ package "libxslt-dev" do
   )
 end
 
-package "apg"
+package "aspell-dev" do
+  package_name value_for_platform(
+    ["ubuntu", "debian"] => { "default" => "libaspell-dev" },
+    ["redhat"] => { "default" => "aspell-devel" }
+  )
+end
 
 gem_package "bundler"
 
