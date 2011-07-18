@@ -22,6 +22,7 @@ include_recipe "mysql"
 include_recipe "memcached"
 include_recipe "activemq"
 include_recipe "sphinx"
+include_recipe "aspell"
 
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
@@ -47,13 +48,6 @@ package "libxslt-dev" do
   package_name value_for_platform(
     ["ubuntu", "debian"] => { "default" => "libxslt1-dev" },
     ["redhat"] => { "default" => "libxslt-devel" }
-  )
-end
-
-package "aspell-dev" do
-  package_name value_for_platform(
-    ["ubuntu", "debian"] => { "default" => "libaspell-dev" },
-    ["redhat"] => { "default" => "aspell-devel" }
   )
 end
 
@@ -169,7 +163,8 @@ deploy_revision "#{path}" do
   end
   symlink_before_migrate ({
                           "config/database.yml" => "config/database.yml",
-                          "config/gitorious.yml" => "config/gitorious.yml"
+                          "config/gitorious.yml" => "config/gitorious.yml",
+                          "config/broker.yml.example" => "config/broker.yml"
                          })
   migrate true
   migration_command "bundle exec rake db:migrate"
@@ -180,6 +175,12 @@ deploy_revision "#{path}" do
       cwd release_path
       environment ({'RAILS_ENV' => 'production'})
     end
+#    execute "bundle exec rake ultrasphinx:spelling:build" do
+#      user "nginx"
+#      group "nginx"
+#      cwd release_path
+#      environment ({'RAILS_ENV' => 'production'})
+#    end
   end
   action :force_deploy # or :rollback
   restart_command "touch tmp/restart.txt"

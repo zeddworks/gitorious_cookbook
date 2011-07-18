@@ -5,7 +5,7 @@ description      "Installs/Configures gitorious"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "0.0.1"
 
-%w{ passenger_nginx mysql memcached activemq sphinx }.each do |cb|
+%w{ passenger_nginx mysql memcached activemq sphinx aspell }.each do |cb|
       depends cb
 end
 
