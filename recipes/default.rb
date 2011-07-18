@@ -175,12 +175,10 @@ deploy_revision "#{path}" do
       cwd release_path
       environment ({'RAILS_ENV' => 'production'})
     end
-#    execute "bundle exec rake ultrasphinx:spelling:build" do
-#      user "nginx"
-#      group "nginx"
-#      cwd release_path
-#      environment ({'RAILS_ENV' => 'production'})
-#    end
+    execute "bundle exec rake ultrasphinx:spelling:build" do
+      cwd release_path
+      environment ({'RAILS_ENV' => 'production'})
+    end
   end
   action :force_deploy # or :rollback
   restart_command "touch tmp/restart.txt"
