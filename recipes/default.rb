@@ -57,18 +57,10 @@ gem_package "bundler"
 
 passenger_nginx_vhost url
 
-#postgresql_user "gitorious" do
-#  password "gitorious"
-#end
-
 mysql_user gitorious["db_user"] do
   host gitorious["db_host"]
   password gitorious["db_password"]
 end
-
-#postgresql_db "gitorious_production" do
-#  owner "gitorious"
-#end
 
 mysql_db gitorious["db_name"] do
   owner gitorious["db_user"]
@@ -145,6 +137,11 @@ deploy_revision "#{path}" do
       group "nginx"
       mode "0755"
     end
+    ruby_block "broker.yml" do
+      block do
+        FileUtils.cp "#{release_path}/config/broker.yml.example", "#{path}/shared/config/broker.yml"
+      end
+    end
     execute "bundle install --deployment" do
       user "nginx"
       group "nginx"
@@ -164,7 +161,7 @@ deploy_revision "#{path}" do
   symlink_before_migrate ({
                           "config/database.yml" => "config/database.yml",
                           "config/gitorious.yml" => "config/gitorious.yml",
-                          "config/broker.yml.example" => "config/broker.yml"
+                          "config/broker.yml" => "config/broker.yml"
                          })
   migrate true
   migration_command "bundle exec rake db:migrate"
