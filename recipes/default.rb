@@ -116,7 +116,7 @@ deploy_revision "#{path}" do
   user "nginx"
   environment "RAILS_ENV" => "production"
   repo "git://gitorious.org/gitorious/mainline.git"
-  revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
+  revision "HEAD" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
   enable_submodules true
   before_migrate do
     cookbook_file "#{release_path}/Gemfile" do
