@@ -30,6 +30,16 @@ smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
 
+rvm_gemset "ree-1.8.7-2011.03@gitorious"
+
+rvm_gem "bundler" do
+  ruby_string "ree-1.8.7-2011.03@gitorious"
+end
+
+rvm_gem "rails" do
+  ruby_string "ree-1.8.7-2011.03@gitorious"
+end
+
 package "imagemagick-dev" do
   package_name value_for_platform(
     ["ubuntu", "debian"] => { "default" => "libmagickwand-dev" },
@@ -53,7 +63,6 @@ end
 
 package "apg"
 
-gem_package "bundler"
 
 passenger_nginx_vhost url
 
@@ -119,18 +128,18 @@ deploy_revision "#{path}" do
   revision "HEAD" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
   enable_submodules true
   before_migrate do
-    cookbook_file "#{release_path}/Gemfile" do
-      source "Gemfile"
-      owner "nginx"
-      group "nginx"
-      mode "0755"
-    end
-    cookbook_file "#{release_path}/Gemfile.lock" do
-      source "Gemfile.lock"
-      owner "nginx"
-      group "nginx"
-      mode "0755"
-    end
+#    cookbook_file "#{release_path}/Gemfile" do
+#      source "Gemfile"
+#      owner "nginx"
+#      group "nginx"
+#      mode "0755"
+#    end
+#    cookbook_file "#{release_path}/Gemfile.lock" do
+#      source "Gemfile.lock"
+#      owner "nginx"
+#      group "nginx"
+#      mode "0755"
+#    end
     cookbook_file "#{release_path}/Rakefile" do
       source "Rakefile"
       owner "nginx"
@@ -142,15 +151,15 @@ deploy_revision "#{path}" do
         FileUtils.cp "#{release_path}/config/broker.yml.example", "#{path}/shared/config/broker.yml"
       end
     end
-    execute "bundle install --deployment" do
-      user "nginx"
-      group "nginx"
+    rvm_shell "bundle_install" do
+      ruby_string "ree-1.8.7-2011.03@gitorious"
       cwd release_path
+      code %{bundle install}
     end
-    execute "bundle package" do
-      user "nginx"
-      group "nginx"
+    rvm_shell "bundle_package" do
+      ruby_string "ree-1.8.7-2011.03@gitorious"
       cwd release_path
+      code %{bundle package}
     end
 #    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
 #      user "nginx"
@@ -163,17 +172,25 @@ deploy_revision "#{path}" do
                           "config/gitorious.yml" => "config/gitorious.yml",
                           "config/broker.yml" => "config/broker.yml"
                          })
-  migrate true
-  migration_command "bundle exec rake db:migrate"
+  migrate false
+#  migration_command "rake db:migrate"
   before_symlink do
-    execute "bundle exec rake ultrasphinx:bootstrap" do
-      user "nginx"
-      group "nginx"
+    rvm_shell "migrate_rails_database" do
+      ruby_string "ree-1.8.7-2011.03@gitorious"
       cwd release_path
+      code %{rake db:migrate}
       environment ({'RAILS_ENV' => 'production'})
     end
-    execute "bundle exec rake ultrasphinx:spelling:build" do
+    rvm_shell "ultrasphinx_bootstrap" do
+      ruby_string "ree-1.8.7-2011.03@gitorious"
       cwd release_path
+      code %{rake ultrasphinx:bootstrap}
+      environment ({'RAILS_ENV' => 'production'})
+    end
+    rvm_shell "ultrasphinx_spelling" do
+      ruby_string "ree-1.8.7-2011.03@gitorious"
+      cwd release_path
+      code %{rake ultrasphinx:spelling:build}
       environment ({'RAILS_ENV' => 'production'})
     end
   end
