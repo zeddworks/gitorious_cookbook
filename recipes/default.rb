@@ -46,10 +46,10 @@ rvm_gem "bundler" do
   ruby_string ruby_string
 end
 
-rvm_gem "rails" do
-  ruby_string ruby_string
+#rvm_gem "rails" do
+#  ruby_string ruby_string
 #  version "2.3.5"
-end
+#end
 
 rvm_gem "raspell" do
   ruby_string ruby_string
