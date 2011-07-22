@@ -50,6 +50,10 @@ rvm_gem "rails" do
   ruby_string ruby_string
 end
 
+rvm_gem "raspell" do
+  ruby_string ruby_string
+end
+
 package "imagemagick-dev" do
   package_name value_for_platform(
     ["ubuntu", "debian"] => { "default" => "libmagickwand-dev" },
