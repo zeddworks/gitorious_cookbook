@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-#node['rvm']['rvmrc'] = {
-#  'rvm_gemset_create_on_use_flag' => 1,
-#  'rvm_trust_rvmrcs_flag'         => 1,
-#}
+node['rvm']['rvmrc'] = {
+  'rvm_gemset_create_on_use_flag' => 1,
+  'rvm_trust_rvmrcs_flag'         => 1,
+}
 
 node['rvm']['default_ruby'] = "ree-1.8.7-2011.03"
 
@@ -48,7 +48,7 @@ end
 
 rvm_gem "rails" do
   ruby_string ruby_string
-  version "2.3.5"
+#  version "2.3.5"
 end
 
 rvm_gem "raspell" do
@@ -177,16 +177,16 @@ deploy_revision "#{path}" do
       mode "0755"
       content "rvm #{ruby_string}"
     end
-    rvm_shell "trust_rvmrc" do
-      ruby_string ruby_string
-      user "nginx"
-      code %{rvm rvmrc trust #{release_path}}
-    end
-    rvm_shell "trust_rvmrc" do
-      ruby_string ruby_string
-      user "root"
-      code %{rvm rvmrc trust #{release_path}}
-    end
+#    rvm_shell "trust_rvmrc" do
+#      ruby_string ruby_string
+#      user "nginx"
+#      code %{rvm rvmrc trust #{release_path}}
+#    end
+#    rvm_shell "trust_rvmrc" do
+#      ruby_string ruby_string
+#      user "root"
+#      code %{rvm rvmrc trust #{release_path}}
+#    end
   end
   symlink_before_migrate ({
                           "config/database.yml" => "config/database.yml",
