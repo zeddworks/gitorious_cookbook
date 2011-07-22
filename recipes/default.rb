@@ -178,6 +178,7 @@ deploy_revision "#{path}" do
     end
     rvm_shell "trust_rvmrc" do
       ruby_string ruby_string
+      user "root"
       code %{rvm rvmrc trust #{release_path}}
     end
   end
