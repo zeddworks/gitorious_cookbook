@@ -17,6 +17,14 @@
 # limitations under the License.
 #
 
+node['rvm']['rvmrc'] = {
+  'rvm_gemset_create_on_use_flag' => 1,
+  'rvm_trust_rvmrcs_flag'         => 1,
+}
+
+node['rvm']['default_ruby'] = "ree-1.8.7-2011.03"
+
+include_recipe "rvm"
 include_recipe "passenger_nginx"
 include_recipe "mysql"
 include_recipe "memcached"
@@ -30,14 +38,16 @@ smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
 
-rvm_gemset "ree-1.8.7-2011.03@gitorious"
+ruby_string = "#{node['rvm']['default_ruby']}@gitorious"
+
+rvm_gemset ruby_string
 
 rvm_gem "bundler" do
-  ruby_string "ree-1.8.7-2011.03@gitorious"
+  ruby_string ruby_string
 end
 
 rvm_gem "rails" do
-  ruby_string "ree-1.8.7-2011.03@gitorious"
+  ruby_string ruby_string
 end
 
 package "imagemagick-dev" do
@@ -97,6 +107,13 @@ end
 #  mode "0400"
 #end
 
+cookbook_file "#{path}/shared/config/setup_load_paths.rb" do
+  source "setup_load_paths.rb"
+  owner "nginx"
+  group "nginx"
+  mode "0400"
+end
+
 template "#{path}/shared/config/database.yml" do
   source "database.yml.erb"
   owner "nginx"
@@ -152,14 +169,18 @@ deploy_revision "#{path}" do
       end
     end
     rvm_shell "bundle_install" do
-      ruby_string "ree-1.8.7-2011.03@gitorious"
+      ruby_string ruby_string
       cwd release_path
       code %{bundle install}
     end
     rvm_shell "bundle_package" do
-      ruby_string "ree-1.8.7-2011.03@gitorious"
+      ruby_string ruby_string
       cwd release_path
       code %{bundle package}
+    end
+    execute "build_rvmrc" do
+      cwd release_path
+      command "echo \'rvm #{ruby_string}\' > #{release_path}/.rvmrc"
     end
 #    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
 #      user "nginx"
@@ -170,25 +191,26 @@ deploy_revision "#{path}" do
   symlink_before_migrate ({
                           "config/database.yml" => "config/database.yml",
                           "config/gitorious.yml" => "config/gitorious.yml",
-                          "config/broker.yml" => "config/broker.yml"
+                          "config/broker.yml" => "config/broker.yml",
+                          "config/setup_load_paths.rb" => "config/setup_load_paths.rb"
                          })
   migrate false
 #  migration_command "rake db:migrate"
   before_symlink do
     rvm_shell "migrate_rails_database" do
-      ruby_string "ree-1.8.7-2011.03@gitorious"
+      ruby_string ruby_string
       cwd release_path
       code %{rake db:migrate}
       environment ({'RAILS_ENV' => 'production'})
     end
     rvm_shell "ultrasphinx_bootstrap" do
-      ruby_string "ree-1.8.7-2011.03@gitorious"
+      ruby_string ruby_string
       cwd release_path
       code %{rake ultrasphinx:bootstrap}
       environment ({'RAILS_ENV' => 'production'})
     end
     rvm_shell "ultrasphinx_spelling" do
-      ruby_string "ree-1.8.7-2011.03@gitorious"
+      ruby_string ruby_string
       cwd release_path
       code %{rake ultrasphinx:spelling:build}
       environment ({'RAILS_ENV' => 'production'})
