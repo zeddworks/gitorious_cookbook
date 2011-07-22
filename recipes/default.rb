@@ -30,6 +30,10 @@ smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
 
+execute "downgrade_rubygems" do
+  command "gem update --system 1.4.2"
+end
+
 package "imagemagick-dev" do
   package_name value_for_platform(
     ["ubuntu", "debian"] => { "default" => "libmagickwand-dev" },
@@ -142,7 +146,7 @@ deploy_revision "#{path}" do
         FileUtils.cp "#{release_path}/config/broker.yml.example", "#{path}/shared/config/broker.yml"
       end
     end
-    execute "bundle install --deployment" do
+    execute "bundle install --deployment --without test" do
       user "nginx"
       group "nginx"
       cwd release_path
