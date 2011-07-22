@@ -48,6 +48,7 @@ end
 
 rvm_gem "rails" do
   ruby_string ruby_string
+  version "2.3.5"
 end
 
 rvm_gem "raspell" do
