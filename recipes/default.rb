@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-node['rvm']['rvmrc'] = {
-  'rvm_gemset_create_on_use_flag' => 1,
-  'rvm_trust_rvmrcs_flag'         => 1,
-}
+#node['rvm']['rvmrc'] = {
+#  'rvm_gemset_create_on_use_flag' => 1,
+#  'rvm_trust_rvmrcs_flag'         => 1,
+#}
 
 node['rvm']['default_ruby'] = "ree-1.8.7-2011.03"
 
@@ -145,18 +145,6 @@ deploy_revision "#{path}" do
   revision "HEAD" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
   enable_submodules true
   before_migrate do
-#    cookbook_file "#{release_path}/Gemfile" do
-#      source "Gemfile"
-#      owner "nginx"
-#      group "nginx"
-#      mode "0755"
-#    end
-#    cookbook_file "#{release_path}/Gemfile.lock" do
-#      source "Gemfile.lock"
-#      owner "nginx"
-#      group "nginx"
-#      mode "0755"
-#    end
     cookbook_file "#{release_path}/Rakefile" do
       source "Rakefile"
       owner "nginx"
@@ -171,22 +159,23 @@ deploy_revision "#{path}" do
     rvm_shell "bundle_install" do
       ruby_string ruby_string
       cwd release_path
-      code %{bundle install}
+      code %{bundle install --without development test}
     end
     rvm_shell "bundle_package" do
       ruby_string ruby_string
       cwd release_path
       code %{bundle package}
     end
-    execute "build_rvmrc" do
-      cwd release_path
-      command "echo \'rvm #{ruby_string}\' > #{release_path}/.rvmrc"
+    file "#{release_path}/.rvmrc" do
+      group "nginx"
+      owner "nginx"
+      mode "0755"
+      content "rvm #{ruby_string}"
     end
-#    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
-#      user "nginx"
-#      group "nginx"
-#      cwd release_path
-#    end
+    rvm_shell "trust_rvmrc" do
+      ruby_string ruby_string
+      code %{rvm rvmrc trust #{release_path}}
+    end
   end
   symlink_before_migrate ({
                           "config/database.yml" => "config/database.yml",
@@ -195,7 +184,6 @@ deploy_revision "#{path}" do
                           "config/setup_load_paths.rb" => "config/setup_load_paths.rb"
                          })
   migrate false
-#  migration_command "rake db:migrate"
   before_symlink do
     rvm_shell "migrate_rails_database" do
       ruby_string ruby_string
