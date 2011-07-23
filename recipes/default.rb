@@ -30,10 +30,8 @@ smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
 
-execute "downgrade_rubygems" do
-  command "gem update --system 1.4.2"
-  not_if "gem --version | grep -e '1\.4\.2'"
-end
+# Gitorious is vendored with Rails 2.3.5 which is not compatible with newer RubyGems
+execute "gem --version | grep 1.5.2 || rvm rubygems 1.5.2"
 
 package "imagemagick-dev" do
   package_name value_for_platform(
