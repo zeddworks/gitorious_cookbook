@@ -32,6 +32,7 @@ path = "/srv/rails/#{url}"
 
 execute "downgrade_rubygems" do
   command "gem update --system 1.4.2"
+  not_if "gem --version | grep -e '1\.4\.2'"
 end
 
 package "imagemagick-dev" do
@@ -60,6 +61,10 @@ package "apg"
 gem_package "bundler"
 
 passenger_nginx_vhost url
+
+passenger_nginx_vhost url do
+  ssl true
+end
 
 mysql_user gitorious["db_user"] do
   host gitorious["db_host"]
