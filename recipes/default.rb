@@ -27,6 +27,14 @@ include_recipe "aspell"
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
 
+git_user = "git"
+git_group = "git"
+
+user git_user do
+  comment "git user"
+  shell "/bin/bash"
+end
+
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
 
@@ -81,8 +89,8 @@ directories = [
               ]
 directories.each do |dir|
   directory dir do
-    owner "nginx"
-    group "nginx"
+    owner git_user
+    group git_group
     mode "0755"
     recursive true
   end
@@ -90,15 +98,15 @@ end
 
 #cookbook_file "#{path}/shared/config/environments/production.rb" do
 #  source "production.rb"
-#  owner "nginx"
-#  group "nginx"
+#  owner "git"
+#  group "git"
 #  mode "0400"
 #end
 
 template "#{path}/shared/config/database.yml" do
   source "database.yml.erb"
-  owner "nginx"
-  group "nginx"
+  owner git_user
+  group git_group
   mode "0755"
   variables({
     :db_adapter => gitorious["db_adapter"],
@@ -111,8 +119,8 @@ end
 
 template "#{path}/shared/config/gitorious.yml" do
   source "gitorious.yml.erb"
-  owner "nginx"
-  group "nginx"
+  owner git_user
+  group git_group
   mode "0755"
   variables({
     :url => gitorious["url"]
@@ -120,7 +128,8 @@ template "#{path}/shared/config/gitorious.yml" do
 end
 
 deploy_revision "#{path}" do
-  user "nginx"
+  user git_user
+  group git_group
   environment "RAILS_ENV" => "production"
   repo "git://gitorious.org/gitorious/mainline.git"
   revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
@@ -128,20 +137,20 @@ deploy_revision "#{path}" do
   before_migrate do
     cookbook_file "#{release_path}/Gemfile" do
       source "Gemfile"
-      owner "nginx"
-      group "nginx"
+      owner git_user
+      group git_group
       mode "0755"
     end
     cookbook_file "#{release_path}/Gemfile.lock" do
       source "Gemfile.lock"
-      owner "nginx"
-      group "nginx"
+      owner git_user
+      group git_group
       mode "0755"
     end
     cookbook_file "#{release_path}/Rakefile" do
       source "Rakefile"
-      owner "nginx"
-      group "nginx"
+      owner git_user
+      group git_group
       mode "0755"
     end
     ruby_block "broker.yml" do
@@ -150,18 +159,18 @@ deploy_revision "#{path}" do
       end
     end
     execute "bundle install --deployment --without test" do
-      user "nginx"
-      group "nginx"
+      user git_user
+      group git_group
       cwd release_path
     end
     execute "bundle package" do
-      user "nginx"
-      group "nginx"
+      user git_user
+      group git_group
       cwd release_path
     end
 #    execute "bundle exec ext install git://github.com/azimux/ax_fix_long_psql_index_names.git" do
-#      user "nginx"
-#      group "nginx"
+#      user git_user
+#      group git_group
 #      cwd release_path
 #    end
   end
@@ -173,9 +182,15 @@ deploy_revision "#{path}" do
   migrate true
   migration_command "bundle exec rake db:migrate"
   before_symlink do
-    execute "bundle exec rake ultrasphinx:bootstrap" do
-      user "nginx"
-      group "nginx"
+    execute "bundle exec rake ultrasphinx:configure" do
+      user git_user
+      group git_group
+      cwd release_path
+      environment ({'RAILS_ENV' => 'production'})
+    end
+    execute "bundle exec rake ultrasphinx:index" do
+      user git_user
+      group git_group
       cwd release_path
       environment ({'RAILS_ENV' => 'production'})
     end
