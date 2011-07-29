@@ -25,7 +25,7 @@ include_recipe "sphinx"
 include_recipe "aspell"
 
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
-smtp = Chef::EncryptedDataBagItem.load("apps", "smtp")
+smtp = Chef::EncryptedDataBagItem.load("env", "smtp")
 
 git_user = "git"
 git_group = "git"
