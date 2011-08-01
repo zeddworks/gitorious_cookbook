@@ -67,6 +67,16 @@ directory "/home/git/git-repos" do
   group git_group
 end
 
+directory "/home/git/tarballs-cache" do
+  owner git_user
+  group git_group
+end
+
+directory "/home/git/tarballs-work" do
+  owner git_user
+  group git_group
+end
+
 directory "/home/git/.ssh" do
   owner git_user
   group git_group
@@ -181,7 +191,8 @@ deploy_revision "#{path}" do
   group git_group
   environment "RAILS_ENV" => rails_env
   repo "git://gitorious.org/gitorious/mainline.git"
-  revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
+  #revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
+  revision "HEAD"
   enable_submodules true
   before_migrate do
     cookbook_file "#{release_path}/Gemfile" do
@@ -265,14 +276,19 @@ template "/etc/init.d/git-ultrasphinx" do
 end
 
 execute "make-git-daemon-bundler-compatible" do
-  command "sed -i \"1 a require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/git-daemon"
-  not_if "grep \"require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/git-daemon"
+  command "sed -i \"/require 'rubygems'/a require '#{current_path}/config/boot.rb'\" #{current_path}/script/git-daemon"
+  not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/script/git-daemon"
 end
 
 execute "make-git-poller-bundler-compatible" do
-  command "sed -i \"2 a require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/poller"
-  not_if "grep \"require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/poller"
+  command "sed -i \"/require 'rubygems'/a require '#{current_path}/config/boot.rb'\" #{current_path}/script/poller"
+  not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/script/poller"
 end
+
+#execute "make-messaging-hook-bundler-compatible" do
+#  command "sed -i \"/require 'rubygems'/a require '#{current_path}/config/boot.rb'\" #{current_path}/data/hooks/messaging.rb"
+#  not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/data/hooks/messaging.rb"
+#end
 
 execute "activemq-to-use-stomp" do
   command "sed -i 's|name=\"openwire\" uri=\"tcp://0.0.0.0:61616\"|name=\"stomp\" uri=\"stomp://0.0.0.0:61613\"|' /opt/apache-activemq-5.5.0/conf/activemq.xml"
