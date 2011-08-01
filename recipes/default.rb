@@ -253,7 +253,7 @@ execute "make-git-poller-bundler-compatible" do
 end
 
 execute "activemq-to-use-stomp" do
-  command "sed -i 's/openwire/stomp' /opt/apache-activemq-5.5.0/conf/activemq.xml"
+  command "sed -i 's/openwire/stomp/' /opt/apache-activemq-5.5.0/conf/activemq.xml"
   not_if "grep stomp /opt/apache-activemq-5.5.0/conf/activemq.xml"
   notifies :restart, 'service[activemq]'
 end
