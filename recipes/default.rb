@@ -240,9 +240,14 @@ template "/etc/init.d/git-ultrasphinx" do
   )
 end
 
-execute "make-git-daemon-bundler-compat" do
+execute "make-git-daemon-bundler-compatible" do
   command "sed -i \"1 a require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/git-daemon"
   not_if "grep \"require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/git-daemon"
+end
+
+execute "make-git-poller-bundler-compatible" do
+  command "sed -i \"2 a require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/poller"
+  not_if "grep \"require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/poller"
 end
 
 template "/etc/init.d/git-daemon" do
