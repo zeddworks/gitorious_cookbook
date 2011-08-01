@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 
+node['rvm']['default_ruby'] = "ree-1.8.7-2011.03"
+include_recipe "rvm"
 include_recipe "passenger_nginx"
 include_recipe "mysql"
 include_recipe "memcached"
@@ -27,16 +29,39 @@ include_recipe "aspell"
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("env", "smtp")
 
+rvm_ruby      = node['rvm']['default_ruby']
+
+bin_path      = "/usr/local/rvm/wrappers/#{rvm_ruby}"
+g_ruby_bin    = "#{bin_path}/ruby"
+g_rake_bin    = "#{bin_path}/rake"
+g_bundle_bin  = "#{bin_path}/bundle"
+g_gem_bin     = "#{bin_path}/gem"
+
+rvm_wrapper "gitorious" do
+  ruby_string rvm_ruby
+  binaries    %w{ rake ruby gem bundle }
+end
+
 git_user = "git"
 git_group = "git"
+
+rails_env = "production"
 
 user git_user do
   comment "git user"
   shell "/bin/bash"
+  home "/home/git"
+end
+
+directory "/home/git/git-repos" do
+  owner git_user
+  group git_group
+  recursive true
 end
 
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
+current_path = "#{path}/current"
 
 # Gitorious is vendored with Rails 2.3.5 which is not compatible with newer RubyGems
 execute "gem --version | grep 1.5.2 || rvm rubygems 1.5.2"
@@ -130,7 +155,7 @@ end
 deploy_revision "#{path}" do
   user git_user
   group git_group
-  environment "RAILS_ENV" => "production"
+  environment "RAILS_ENV" => rails_env
   repo "git://gitorious.org/gitorious/mainline.git"
   revision "v2.0.0" # or "HEAD" or "TAG_for_1.0" or (subversion) "1234"
   enable_submodules true
@@ -186,19 +211,95 @@ deploy_revision "#{path}" do
       user git_user
       group git_group
       cwd release_path
-      environment ({'RAILS_ENV' => 'production'})
+      environment ({'RAILS_ENV' => rails_env})
     end
     execute "bundle exec rake ultrasphinx:index" do
       user git_user
       group git_group
       cwd release_path
-      environment ({'RAILS_ENV' => 'production'})
+      environment ({'RAILS_ENV' => rails_env})
     end
     execute "bundle exec rake ultrasphinx:spelling:build" do
       cwd release_path
-      environment ({'RAILS_ENV' => 'production'})
+      environment ({'RAILS_ENV' => rails_env})
     end
   end
   action :force_deploy # or :rollback
   restart_command "touch tmp/restart.txt"
+end
+
+template "/etc/init.d/git-ultrasphinx" do
+  source      "git-ultrasphinx.erb"
+  owner       "root"
+  group       "root"
+  mode        "0755"
+  variables(
+    :rails_env    => rails_env,
+    :rake_bin     => g_rake_bin,
+    :current_path => current_path
+  )
+end
+
+execute "make-git-daemon-bundler-compat" do
+  command "sed -i \"1 a require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/git-daemon"
+  not_if "grep \"require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/git-daemon"
+end
+
+template "/etc/init.d/git-daemon" do
+  source      "git-daemon.erb"
+  owner       "root"
+  group       "root"
+  mode        "0755"
+  variables(
+    :rails_env    => rails_env,
+    :g_ruby_bin   => g_ruby_bin,
+    :current_path => current_path
+  )
+end
+template "/etc/init.d/git-poller" do
+  source      "git-poller.erb"
+  owner       "root"
+  group       "root"
+  mode        "0755"
+  variables(
+    :rails_env    => rails_env,
+    :g_ruby_bin   => g_ruby_bin,
+    :current_path => current_path
+  )
+end
+cron "gitorious_ultrasphinx_reindexing" do
+  user        git_user
+  command     <<-CRON.sub(/^ {4}/, '')
+    cd #{current_path} && #{g_rake_bin} RAILS_ENV=#{rails_env} ultrasphinx:index
+  CRON
+end
+service "git-ultrasphinx" do
+  action      [ :enable, :start ]
+  pattern     "searchd"
+  supports    :restart => true, :reload => true, :status => false
+end
+service "git-daemon" do
+  action      [ :enable, :start ]
+  supports    :restart => true, :reload => false, :status => false
+end
+service "git-poller" do
+  action      [ :enable, :start ]
+  pattern     "poller"
+  supports    :restart => true, :reload => true, :status => false
+end
+execute "create_gitorious_admin_user" do
+  cwd         current_path
+  user        git_user
+  group       git_group
+  command     <<-CMD.sub(/^ {4}/, '')
+    cat <<_INPUT | RAILS_ENV=#{rails_env} #{g_ruby_bin} script/create_admin
+    #{gitorious["admin_email"]}
+    #{gitorious["admin_password"]}
+    _INPUT
+  CMD
+  only_if     <<-ONLYIF
+    cd #{current_path} && \
+    RAILS_ENV=#{rails_env} #{g_ruby_bin} script/runner \
+      'User.find_by_is_admin(true) and abort'
+  ONLYIF
 end
