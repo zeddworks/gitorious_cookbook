@@ -27,10 +27,10 @@ production:
   gitorious_host: <%=@url%>
 
   # User which is running git daemon
-  gitorious_user: git
+  gitorious_user: <%=@git_user%>
 
   # Email address to the support for the Gitorious server
-  gitorious_support_email: support@gitorious.org
+  gitorious_support_email: <%=@admin_email%>
 
   # Email spam on server errors to:
   exception_notification_emails:

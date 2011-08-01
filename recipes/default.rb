@@ -148,7 +148,9 @@ template "#{path}/shared/config/gitorious.yml" do
   group git_group
   mode "0755"
   variables({
-    :url => gitorious["url"]
+    :url => gitorious["url"],
+    :git_user => gitorious["git_user"],
+    :admin_email => gitorious["admin_email"]
   })
 end
 
