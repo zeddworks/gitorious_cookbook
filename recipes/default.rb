@@ -29,6 +29,10 @@ include_recipe "aspell"
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("env", "smtp")
 
+url = gitorious["url"]
+path = "/srv/rails/#{url}"
+current_path = "#{path}/current"
+
 rvm_ruby      = node['rvm']['default_ruby']
 
 bin_path      = "/usr/local/rvm/wrappers/#{rvm_ruby}"
@@ -53,29 +57,33 @@ user git_user do
   home "/home/git"
 end
 
+directory "/home/git" do
+  owner git_user
+  group git_group
+end
+
 directory "/home/git/git-repos" do
   owner git_user
   group git_group
-  recursive true
 end
 
 directory "/home/git/.ssh" do
   owner git_user
   group git_group
-  recursive true
   mode "0700"
 end
 
 file "/home/git/.ssh/authorized_keys" do
   owner git_user
   group git_group
+  mode "0644"
 end
 
-
-
-url = gitorious["url"]
-path = "/srv/rails/#{url}"
-current_path = "#{path}/current"
+file "/home/git/.bashrc" do
+  content "export PATH=$PATH:/srv/rails/#{url}/current/script"
+  owner git_user
+  group git_group
+end
 
 # Gitorious is vendored with Rails 2.3.5 which is not compatible with newer RubyGems
 execute "gem --version | grep 1.5.2 || rvm rubygems 1.5.2"
@@ -162,7 +170,7 @@ template "#{path}/shared/config/gitorious.yml" do
   group git_group
   mode "0755"
   variables({
-    :url => gitorious["url"],
+    :url => url,
     :git_user => git_user,
     :admin_email => gitorious["admin_email"]
   })
