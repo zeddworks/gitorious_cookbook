@@ -149,7 +149,7 @@ template "#{path}/shared/config/gitorious.yml" do
   mode "0755"
   variables({
     :url => gitorious["url"],
-    :git_user => gitorious["git_user"],
+    :git_user => git_user,
     :admin_email => gitorious["admin_email"]
   })
 end
