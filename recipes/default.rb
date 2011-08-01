@@ -59,6 +59,20 @@ directory "/home/git/git-repos" do
   recursive true
 end
 
+directory "/home/git/.ssh" do
+  owner git_user
+  group git_group
+  recursive true
+  mode "0700"
+end
+
+file "/home/git/.ssh/authorized_keys" do
+  owner git_user
+  group git_group
+end
+
+
+
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
 current_path = "#{path}/current"
