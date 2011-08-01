@@ -252,6 +252,12 @@ execute "make-git-poller-bundler-compatible" do
   not_if "grep \"require File.dirname(__FILE__) + '/../config/boot'\" #{current_path}/script/poller"
 end
 
+execute "activemq-to-use-stomp" do
+  command "sed -i 's/openwire/stomp' /opt/apache-activemq-5.5.0/conf/activemq.xml"
+  not_if "grep stomp /opt/apache-activemq-5.5.0/conf/activemq.xml"
+  notifies :restart, 'service[activemq]'
+end
+
 template "/etc/init.d/git-daemon" do
   source      "git-daemon.erb"
   owner       "root"
