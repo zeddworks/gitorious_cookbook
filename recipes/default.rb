@@ -153,12 +153,15 @@ directories.each do |dir|
   end
 end
 
-#cookbook_file "#{path}/shared/config/environments/production.rb" do
-#  source "production.rb"
-#  owner "git"
-#  group "git"
-#  mode "0400"
-#end
+template "#{path}/shared/config/environment.rb" do
+  source "environment.rb.erb"
+  owner git_user
+  group git_group
+  mode "0755"
+  variables({
+    :time_zone => gitorious["time_zone"]
+  })
+end
 
 template "#{path}/shared/config/database.yml" do
   source "database.yml.erb"
@@ -235,6 +238,7 @@ deploy_revision "#{path}" do
 #    end
   end
   symlink_before_migrate ({
+                          "config/environment.rb" => "config/environment.rb",
                           "config/database.yml" => "config/database.yml",
                           "config/gitorious.yml" => "config/gitorious.yml",
                           "config/broker.yml" => "config/broker.yml"
