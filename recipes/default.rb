@@ -123,9 +123,12 @@ package "apg"
 
 gem_package "bundler"
 
-passenger_nginx_vhost url
+passenger_nginx_vhost url do
+  internal_locations [["/tarballs-cache","/home/git"]]
+end
 
 passenger_nginx_vhost url do
+  internal_locations [["/tarballs-cache","/home/git"]]
   ssl true
 end
 
@@ -264,6 +267,19 @@ deploy_revision "#{path}" do
     end
   end
   action :force_deploy # or :rollback
+  before_restart do
+    cookbook_file "#{release_path}/nginx_sendfile_gitorious.patch" do
+      source "nginx_sendfile_gitorious.patch"
+      owner git_user
+      group git_group
+      mode "0755"
+    end
+    execute "patch -p1 -i nginx_sendfile_gitorious.patch" do
+      user git_user
+      group git_group
+      cwd release_path
+    end
+  end
   restart_command "touch tmp/restart.txt"
 end
 

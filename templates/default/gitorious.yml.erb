@@ -46,6 +46,7 @@ production:
 
   # Where should we store generated tarballs?
   # (should be readable by webserver, since we tell it to send the file using X-Sendfile)
+  nginx_sendfile_dir: "/tarballs-cache/"
   archive_cache_dir: "/home/git/tarballs-cache"
   # Which directory should we work in when we generate tarballs, before moving 
   # them to the above dir?
