@@ -300,15 +300,15 @@ execute "make-git-daemon-bundler-compatible" do
   not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/script/git-daemon"
 end
 
-execute "make-git-poller-bundler-compatible" do
+execute "make-poller-bundler-compatible" do
   command "sed -i \"/require 'rubygems'/a require '#{current_path}/config/boot.rb'\" #{current_path}/script/poller"
   not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/script/poller"
 end
 
-#execute "make-messaging-hook-bundler-compatible" do
-#  command "sed -i \"/require 'rubygems'/a require '#{current_path}/config/boot.rb'\" #{current_path}/data/hooks/messaging.rb"
-#  not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/data/hooks/messaging.rb"
-#end
+execute "make-gitorious-config-bundler-compatible" do
+  command "sed -i '/require \"rubygems\"/a require \"bundler/setup\"' #{current_path}/script/gitorious-config"
+  not_if "grep 'require \"bundler/setup\"' #{current_path}/script/gitorious-config"
+end
 
 execute "activemq-to-use-stomp" do
   command "sed -i 's|name=\"openwire\" uri=\"tcp://0.0.0.0:61616\"|name=\"stomp\" uri=\"stomp://0.0.0.0:61613\"|' /opt/apache-activemq-5.5.0/conf/activemq.xml"
