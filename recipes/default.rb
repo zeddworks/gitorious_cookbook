@@ -46,8 +46,8 @@ rvm_wrapper "gitorious" do
   binaries    %w{ rake ruby gem bundle }
 end
 
-git_user = "git"
-git_group = "git"
+git_user = gitorious["user"]
+git_group = gitorious["group"]
 
 rails_env = "production"
 
