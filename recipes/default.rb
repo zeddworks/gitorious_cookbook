@@ -316,9 +316,9 @@ execute "activemq-to-use-stomp" do
   notifies :restart, 'service[activemq]'
 end
 
-#execute "set-grit-timeout-to-60" do
-#  command "sed -i -e '24s/self.git_timeout  = 10/self.git_timeout  = 60/' -e '27s/10.seconds/60.seconds/' #{current_path}/vendor/grit/lib/grit/git.rb"
-#end
+execute "set-grit-timeout-to-120" do
+  command "sed -i -e '24s/self.git_timeout  = 10/self.git_timeout  = 120/' -e '27s/10.seconds/120.seconds/' #{current_path}/vendor/grit/lib/grit/git.rb"
+end
 
 template "/etc/init.d/git-daemon" do
   source      "git-daemon.erb"
