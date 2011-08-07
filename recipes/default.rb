@@ -266,7 +266,7 @@ deploy_revision "#{path}" do
       environment ({'RAILS_ENV' => rails_env})
     end
   end
-  action :force_deploy # or :rollback
+  action :deploy # :deploy or :force_deploy or :rollback
   before_restart do
     cookbook_file "#{release_path}/nginx_sendfile_gitorious.patch" do
       source "nginx_sendfile_gitorious.patch"
