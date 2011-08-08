@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-node['rvm']['default_ruby'] = "ree-1.8.7-2011.03"
 include_recipe "rvm"
+include_recipe "rvm::gem_package"
 include_recipe "passenger_nginx"
 include_recipe "mysql"
 include_recipe "memcached"
@@ -121,7 +121,9 @@ end
 
 package "apg"
 
-gem_package "bundler"
+rvm_gem "bundler" do
+  ruby_string node['rvm']['default_ruby']
+end
 
 passenger_nginx_vhost url do
   internal_locations [["/tarballs-cache","/home/git"]]
