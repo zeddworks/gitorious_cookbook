@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-node['rvm']['default_ruby'] = "ruby-1.8.7-p352"
 include_recipe "rvm"
 include_recipe "rvm::gem_package"
 include_recipe "passenger_nginx"
