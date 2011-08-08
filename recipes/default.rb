@@ -297,6 +297,16 @@ template "/etc/init.d/git-ultrasphinx" do
   )
 end
 
+template "/etc/logrotate.d/gitorious" do
+  source      "gitorious-logrotate.erb"
+  owner       "root"
+  group       "root"
+  mode        "0644"
+  variables(
+    :current_path => current_path
+  )
+end
+
 execute "make-git-daemon-bundler-compatible" do
   command "sed -i \"/require 'rubygems'/a require '#{current_path}/config/boot.rb'\" #{current_path}/script/git-daemon"
   not_if "grep \"require '#{current_path}/config/boot.rb'\" #{current_path}/script/git-daemon"
