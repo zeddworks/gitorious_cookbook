@@ -400,7 +400,7 @@ end
 cron "mysql_dumps" do
   user        git_user
   command     <<-CRON.sub(/^ {4}/, '')
-    /usr/bin/mysqldump -u #{gitorious["db_host"]} --password=#{gitorious["db_password"]} gitorious_production > /home/#{git_user}/mysql_dumps/gitorious_production-`date +%m-%d-%y`.sql
+    /usr/bin/mysqldump -u #{gitorious["db_user"]} --password=#{gitorious["db_password"]} gitorious_production > /home/#{git_user}/mysql_dumps/gitorious_production-`date +%m-%d-%y`.sql
   CRON
 end
 
