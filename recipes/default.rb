@@ -25,6 +25,7 @@ include_recipe "memcached"
 include_recipe "activemq"
 include_recipe "sphinx"
 include_recipe "aspell"
+include_recipe "rsync"
 
 gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
 smtp = Chef::EncryptedDataBagItem.load("env", "smtp")
@@ -389,4 +390,11 @@ execute "create_gitorious_admin_user" do
     RAILS_ENV=#{rails_env} #{g_ruby_bin} script/runner \
       'User.find_by_is_admin(true) and abort'
   ONLYIF
+end
+
+rsync_module "gitorious" do
+  path "/home/git/repos"
+  comment "git repos"
+  uid git_user
+  gid git_group
 end
