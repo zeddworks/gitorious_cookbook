@@ -392,9 +392,28 @@ execute "create_gitorious_admin_user" do
   ONLYIF
 end
 
-rsync_module "gitorious" do
-  path "/home/git/repos"
-  comment "git repos"
+directory "/home/#{git_user}/mysql_dumps" do
+  owner git_user
+  group git_user
+end
+
+cron "mysql_dumps" do
+  user        git_user
+  command     <<-CRON.sub(/^ {4}/, '')
+    /usr/bin/mysqldump -u #{gitorious["db_host"]} --password=#{gitorious["db_password"]} gitorious_production > /home/#{git_user}/mysql_dumps/gitorious_production-`date +%m-%d-%y`.sql
+  CRON
+end
+
+rsync_module "git-repos" do
+  path "/home/#{git_user}/repos"
+  comment "git-repos"
+  uid git_user
+  gid git_group
+end
+
+rsync_module "git-mysql" do
+  path "/home/#{git_user}/mysql_dumps"
+  comment "git-mysql"
   uid git_user
   gid git_group
 end
