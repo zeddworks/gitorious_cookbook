@@ -397,10 +397,22 @@ directory "/home/#{git_user}/mysql_dumps" do
   group git_user
 end
 
+directory "/home/#{git_user}/scripts" do
+  owner git_user
+  group git_user
+end
+
+file "/home/#{git_user}/scripts/mysql_dumps.sh" do
+  content "/usr/bin/mysqldump -u #{gitorious["db_user"]} --password=#{gitorious["db_password"]} gitorious_production > /home/#{git_user}/mysql_dumps/gitorious_production-`date +%m-%d-%y`.sql"
+  owner git_user
+  group git_group
+  mode "0755"
+end
+
 cron "mysql_dumps" do
   user        git_user
   command     <<-CRON.sub(/^ {4}/, '')
-    /usr/bin/mysqldump -u #{gitorious["db_user"]} --password=#{gitorious["db_password"]} gitorious_production > /home/#{git_user}/mysql_dumps/gitorious_production-`date +%m-%d-%y`.sql
+    /home/#{git_user}/scripts/mysql_dumps.sh
   CRON
 end
 
