@@ -252,7 +252,8 @@ deploy_revision "#{path}" do
   migrate true
   migration_command "bundle exec rake db:migrate"
   before_symlink do
-    execute "bundle exec rake ultrasphinx:configure" do
+    #Creates configuration incorrectly when using bundle exec
+    execute "rake ultrasphinx:configure" do
       user git_user
       group git_group
       cwd release_path
@@ -355,12 +356,6 @@ template "/etc/init.d/git-poller" do
     :current_path => current_path
   )
 end
-cron "gitorious_ultrasphinx_reindexing" do
-  user        git_user
-  command     <<-CRON.sub(/^ {4}/, '')
-    cd #{current_path} && #{g_rake_bin} RAILS_ENV=#{rails_env} ultrasphinx:index
-  CRON
-end
 service "git-ultrasphinx" do
   action      [ :enable, :start ]
   pattern     "searchd"
@@ -414,6 +409,15 @@ cron "mysql_dumps" do
   command     <<-CRON.sub(/^ {4}/, '')
     /home/#{git_user}/scripts/mysql_dumps.sh
   CRON
+  minute      "0"
+end
+
+cron "gitorious_ultrasphinx_reindexing" do
+  user        git_user
+  command     <<-CRON.sub(/^ {4}/, '')
+    cd #{current_path} && #{g_rake_bin} RAILS_ENV=#{rails_env} ultrasphinx:index
+  CRON
+  minute      "30"
 end
 
 rsync_module "git-repos" do
