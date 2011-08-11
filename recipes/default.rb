@@ -28,7 +28,6 @@ include_recipe "aspell"
 include_recipe "rsync"
 
 gitorious = Chef::EncryptedDataBagItem.load("apps", "#{node[:brand]}_gitorious")
-smtp = Chef::EncryptedDataBagItem.load("env", "smtp")
 
 url = gitorious["url"]
 path = "/srv/rails/#{url}"
