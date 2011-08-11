@@ -27,7 +27,7 @@ include_recipe "sphinx"
 include_recipe "aspell"
 include_recipe "rsync"
 
-gitorious = Chef::EncryptedDataBagItem.load("apps", "gitorious")
+gitorious = Chef::EncryptedDataBagItem.load("apps", "#{node[:brand]}_gitorious")
 smtp = Chef::EncryptedDataBagItem.load("env", "smtp")
 
 url = gitorious["url"]
@@ -345,6 +345,7 @@ template "/etc/init.d/git-daemon" do
     :current_path => current_path
   )
 end
+
 template "/etc/init.d/git-poller" do
   source      "git-poller.erb"
   owner       "root"
@@ -356,20 +357,24 @@ template "/etc/init.d/git-poller" do
     :current_path => current_path
   )
 end
+
 service "git-ultrasphinx" do
   action      [ :enable, :start ]
   pattern     "searchd"
   supports    :restart => true, :reload => true, :status => false
 end
+
 service "git-daemon" do
   action      [ :enable, :start ]
   supports    :restart => true, :reload => false, :status => false
 end
+
 service "git-poller" do
   action      [ :enable, :start ]
   pattern     "poller"
   supports    :restart => true, :reload => true, :status => false
 end
+
 execute "create_gitorious_admin_user" do
   cwd         current_path
   user        git_user
@@ -432,4 +437,59 @@ rsync_module "git-mysql" do
   comment "git-mysql"
   uid git_user
   gid git_group
+end
+
+file "/tmp/logo.b64" do
+  content gitorious["logo"]
+  owner git_user
+  group git_group
+end
+
+execute "cat /tmp/logo.b64 | base64 -d > #{current_path}/public/img/logo.png" do
+  user git_user
+  group git_group
+end
+
+execute "cat /tmp/logo.b64 | base64 -d > #{current_path}/public/img/external/logo.png" do
+  user git_user
+  group git_group
+end
+
+file "/tmp/logo.b64" do
+  action :delete
+end
+
+case node[:brand]
+when "zw"
+  cookbook_file "#{current_path}/zw_base_css.patch" do
+    source "zw_base_css.patch"
+    owner git_user
+    group git_group
+  end
+  cookbook_file "#{current_path}/zw_external_css.patch" do
+    source "zw_external_css.patch"
+    owner git_user
+    group git_group
+  end
+  execute "patch -p0 -i zw_base_css.patch" do
+    user git_user
+    group git_group
+    cwd "#{current_path}"
+    not_if "sed -n '304p' #{current_path}/public/stylesheets/base.css | grep 'padding: 0px 0 0 0px;'"
+  end
+  execute "patch -p0 -i zw_external_css.patch" do
+    user git_user
+    group git_group
+    cwd "#{current_path}"
+    not_if "sed -n '66p' #{current_path}/public/stylesheets/external.css | grep 'width: 100px;'"
+  end
+when "xyz"
+  execute "sed -i -e '58s/height: 45px;/height: 49px;/' -e '67s/height: 45px;/height: 49px;/' #{current_path}/public/stylesheets/external.css" do
+    user git_user
+    group git_group
+  end
+end
+
+file "#{current_path}/public/stylesheets/all.css" do
+  action :delete
 end

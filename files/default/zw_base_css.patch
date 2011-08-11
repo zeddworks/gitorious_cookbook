@@ -1,0 +1,14 @@
+--- public/stylesheets/base.css.orig	2011-08-07 16:37:32.400337558 -0400
++++ public/stylesheets/base.css	2011-08-07 16:37:18.011352252 -0400
+@@ -301,9 +301,9 @@
+ }
+ 
+ #header #logo {
+-    padding: 10px 0 0 20px;
++    padding: 0px 0 0 0px;
+     line-height: 25px;
+-    margin: 25px 0px 0px 25px;
++    margin: 5px 0px 0px 5px;
+     float: left;
+     border:0;
+ }

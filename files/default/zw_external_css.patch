@@ -1,0 +1,29 @@
+--- public/stylesheets/external.css.orig	2011-08-07 16:53:47.218566065 -0400
++++ public/stylesheets/external.css	2011-08-07 16:53:40.328566061 -0400
+@@ -63,15 +63,15 @@
+ }
+ 
+ #top #logo h1 {
+-    width: 136px;
+-    height: 45px;
++    width: 100px;
++    height: 100px;
+     background: url(../img/external/logo.png) no-repeat;
+     float: left;	
+ }
+ 
+ #top #logo h1 a {
+-    width: 136px;
+-    height: 33px;
++    width: 100px;
++    height: 100px;
+     display: block;
+     float: left;
+     text-indent: -9999px;
+@@ -875,4 +875,4 @@
+ #footer #gitorious-com a {
+     color: #6e6e6e;
+     font-weight: bold;
+-}
+\ No newline at end of file
++}
