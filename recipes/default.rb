@@ -374,6 +374,10 @@ service "git-poller" do
   supports    :restart => true, :reload => true, :status => false
 end
 
+execute "set_gitorious_admin_user" do
+  command "sed -i \"s/user.login = 'admin'/user.login = '#{gitorious["admin_user"]}'/\" #{current_path}/script/create_admin"
+end
+
 execute "create_gitorious_admin_user" do
   cwd         current_path
   user        git_user
